@@ -3,8 +3,6 @@ import vertexai
 from vertexai.preview.generative_models import GenerativeModel
 import os
 from transformers import pipeline
-import tensorflow as tf
-import tf_keras
 
 def initialize_vertexai():
     project_id = 'genz-457123'
@@ -13,12 +11,6 @@ def initialize_vertexai():
     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
     vertexai.init(project=project_id, location=location)
     return GenerativeModel("gemini-2.0-flash-lite")
-
-def predict_mood(classifier, text):
-    results = classifier(text, top_k=None)  # Get all emotions with their scores
-    # Filter emotions with significant confidence (e.g., > 0.1)
-    emotions = [(result['label'], round(result['score'], 2)) for result in results if result['score'] > 0.1]
-    return emotions
 
 def get_bot_response(model, user_input, emotion):
     # Create a context-aware prompt based on detected emotion
@@ -45,8 +37,7 @@ def main():
     
     # Initialize the models
     model = initialize_vertexai()
-    emotion_classifier = pipeline("text-classification", 
-                                model="j-hartmann/emotion-english-distilroberta-base")
+    emotionModel = pipeline('text-classification', model='SamLowe/roberta-base-go_emotions')
     
     # Initialize chat history and greeting flag
     if "messages" not in st.session_state:
@@ -61,11 +52,11 @@ def main():
 
     # Chat input
     if user_input := st.chat_input("What's on your mind?"):
-        # Predict emotion using DistilRoBERTa
-        emotions = predict_mood(emotion_classifier, user_input)
+        # Predict emotion using emotionModel directly
+        emotions = emotionModel(user_input)
         print(f"\nDetected Emotions for: '{user_input}'")
-        for emotion, score in emotions:
-            print(f"- {emotion.upper()}: {score}")
+        for emotion in emotions:
+            print(f"- {emotion['label'].upper()}: {round(emotion['score'], 2)}")
         
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
@@ -73,7 +64,9 @@ def main():
 
         # Get bot response
         with st.chat_message("assistant"):
-            emotions_text = ", ".join([f"{emotion}: {score}" for emotion, score in emotions])  # Fixed unpacking
+            # Filter emotions with significant confidence (e.g., > 0.1)
+            significant_emotions = [emotion for emotion in emotions if emotion['score'] > 0.1]
+            emotions_text = ", ".join([f"{emotion['label']}: {round(emotion['score'], 2)}" for emotion in significant_emotions])
             st.markdown(f"*Detected emotions: {emotions_text}*")
             st.markdown("---")
             bot_response = get_bot_response(model, user_input, emotions_text)
