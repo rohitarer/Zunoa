@@ -6,12 +6,14 @@ import 'package:zunoa/services/firebase_service.dart';
 import 'package:zunoa/ui/screens/profile_screen.dart';
 import 'package:zunoa/ui/screens/splash_screen.dart';
 import 'package:zunoa/ui/screens/signup_screen.dart';
-import 'package:zunoa/ui/screens/home_screen.dart';
+import 'package:zunoa/ui/screens/base_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(
+    const ProviderScope(child: MyApp()),
+  ); // Ensure ProviderScope wraps the entire app
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -27,22 +29,27 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    // Show splash screen for 3 seconds and then load the next screen
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) setState(() => _showSplash = false);
     });
+
+    // Initialize auth state (ensuring auth state is checked on startup)
+    ref.read(authProvider.notifier).initializeAuthState();
   }
 
+  // This function decides which screen to show after initialization
   Future<Widget> _buildInitialScreen() async {
-    final authState = ref.read(authProvider);
-    final user = authState.user;
+    final user = ref.read(authProvider).user;
 
     if (user != null) {
       try {
         final userData = await firebaseService.fetchUserData(user.uid);
         final isProfileComplete = userData['isProfileComplete'] == true;
-        return isProfileComplete ? const HomeScreen() : const ProfileScreen();
+        return isProfileComplete ? const BaseScreen() : const ProfileScreen();
       } catch (e) {
-        // fallback if user doc is missing or any error occurs
+        // In case of any error, fallback to the profile setup
         return const ProfileScreen();
       }
     } else {
@@ -73,9 +80,9 @@ class _MyAppState extends ConsumerState<MyApp> {
                       body: Center(child: CircularProgressIndicator()),
                     );
                   } else if (snapshot.hasData) {
-                    return snapshot.data!;
+                    return snapshot.data!; // Navigate to the appropriate screen
                   } else {
-                    return const SignUpScreen(); // fallback
+                    return const SignUpScreen(); // Fallback screen
                   }
                 },
               ),

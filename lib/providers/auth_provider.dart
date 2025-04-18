@@ -1,4 +1,4 @@
-// 📄 auth_provider.dart
+// 📔 auth_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:zunoa/services/firebase_service.dart';
@@ -12,12 +12,14 @@ class AuthState {
   final String? errorMessage;
   final User? user;
   final bool isInitialized;
+  final bool isProfileComplete;
 
   AuthState({
     this.isLoading = false,
     this.errorMessage,
     this.user,
     this.isInitialized = false,
+    this.isProfileComplete = false,
   });
 
   AuthState copyWith({
@@ -25,12 +27,14 @@ class AuthState {
     String? errorMessage,
     User? user,
     bool? isInitialized,
+    bool? isProfileComplete,
   }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage ?? this.errorMessage,
       user: user ?? this.user,
       isInitialized: isInitialized ?? this.isInitialized,
+      isProfileComplete: isProfileComplete ?? this.isProfileComplete,
     );
   }
 }
@@ -39,8 +43,39 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   AuthNotifier() : super(AuthState()) {
-    _auth.authStateChanges().listen((user) {
-      state = state.copyWith(user: user, isInitialized: true);
+    initializeAuthState();
+  }
+
+  Future<void> initializeAuthState() async {
+    final user = _auth.currentUser;
+    bool profileComplete = false;
+
+    if (user != null) {
+      try {
+        final userData = await firebaseService.fetchUserData(user.uid);
+        profileComplete = userData['isProfileComplete'] == true;
+      } catch (_) {
+        profileComplete = false;
+      }
+    }
+
+    state = state.copyWith(
+      user: user,
+      isInitialized: true,
+      isProfileComplete: profileComplete,
+    );
+
+    _auth.authStateChanges().listen((user) async {
+      bool profileComplete = false;
+      if (user != null) {
+        try {
+          final userData = await firebaseService.fetchUserData(user.uid);
+          profileComplete = userData['isProfileComplete'] == true;
+        } catch (_) {
+          profileComplete = false;
+        }
+      }
+      state = state.copyWith(user: user, isProfileComplete: profileComplete);
     });
   }
 
@@ -67,7 +102,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
         email: email,
         password: password,
       );
-      state = state.copyWith(user: result.user);
+      bool profileComplete = false;
+      try {
+        final userData = await firebaseService.fetchUserData(result.user!.uid);
+        profileComplete = userData['isProfileComplete'] == true;
+      } catch (_) {
+        profileComplete = false;
+      }
+      state = state.copyWith(
+        user: result.user,
+        isProfileComplete: profileComplete,
+      );
     } on FirebaseAuthException catch (e) {
       state = state.copyWith(errorMessage: e.message);
     } finally {
@@ -77,7 +122,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     await _auth.signOut();
-    state = state.copyWith(user: null);
+    state = state.copyWith(user: null, isProfileComplete: false);
   }
 
   User? get currentUser => _auth.currentUser;

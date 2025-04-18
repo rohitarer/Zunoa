@@ -16,7 +16,11 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: primaryColor,
     scaffoldBackgroundColor: backgroundLight,
-    appBarTheme: AppBarTheme(
+    bottomAppBarTheme: const BottomAppBarTheme(
+      color: surfaceLight,
+      elevation: 8,
+    ),
+    appBarTheme: const AppBarTheme(
       backgroundColor: primaryColor,
       elevation: 0,
       titleTextStyle: TextStyle(
@@ -26,10 +30,9 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: Colors.white),
     ),
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: primaryColor,
       secondary: secondaryColor,
-      background: backgroundLight,
       surface: surfaceLight,
       error: errorColor,
     ),
@@ -37,10 +40,12 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
     ),
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       headlineMedium: TextStyle(
         color: Colors.black87,
         fontWeight: FontWeight.bold,
@@ -55,7 +60,11 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: primaryColor,
     scaffoldBackgroundColor: backgroundDark,
-    appBarTheme: AppBarTheme(
+    bottomAppBarTheme: const BottomAppBarTheme(
+      color: surfaceDark,
+      elevation: 8,
+    ),
+    appBarTheme: const AppBarTheme(
       backgroundColor: primaryColor,
       elevation: 0,
       titleTextStyle: TextStyle(
@@ -65,10 +74,9 @@ class AppTheme {
       ),
       iconTheme: IconThemeData(color: Colors.white),
     ),
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       secondary: secondaryColor,
-      background: backgroundDark,
       surface: surfaceDark,
       error: errorColor,
     ),
@@ -76,10 +84,12 @@ class AppTheme {
       style: ElevatedButton.styleFrom(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(12)),
+        ),
       ),
     ),
-    textTheme: TextTheme(
+    textTheme: const TextTheme(
       headlineMedium: TextStyle(
         color: Colors.white,
         fontWeight: FontWeight.bold,

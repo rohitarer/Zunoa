@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zunoa/ui/screens/splash_screen.dart';
 import 'package:zunoa/ui/screens/signup_screen.dart';
 import 'package:zunoa/ui/screens/login_screen.dart';
-import 'package:zunoa/ui/screens/home_screen.dart';
+import 'package:zunoa/ui/screens/base_screen.dart';
 import 'package:zunoa/ui/screens/profile_screen.dart';
 
 class AppRoutes {
@@ -21,7 +21,7 @@ class AppRoutes {
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
       case home:
-        return MaterialPageRoute(builder: (_) => const HomeScreen());
+        return MaterialPageRoute(builder: (_) => const BaseScreen());
       case profile:
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       default:

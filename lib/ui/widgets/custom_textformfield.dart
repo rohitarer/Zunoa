@@ -23,7 +23,7 @@ class CustomTextFormField extends StatelessWidget {
   final EdgeInsetsGeometry? contentPadding; // ✅ New parameter added here
 
   const CustomTextFormField({
-    Key? key,
+    super.key,
     this.controller,
     this.label,
     this.hintText,
@@ -44,7 +44,7 @@ class CustomTextFormField extends StatelessWidget {
     this.textCapitalization = TextCapitalization.sentences,
     this.textStyle,
     this.contentPadding, // ✅ Add this to constructor
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

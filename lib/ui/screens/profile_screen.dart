@@ -10,7 +10,7 @@ import 'package:zunoa/core/theme.dart';
 import 'package:zunoa/ui/widgets/custom_textformfield.dart';
 import 'package:zunoa/providers/profile_provider.dart';
 import 'package:intl/intl.dart';
-import 'home_screen.dart';
+import 'base_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -99,23 +99,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final theme = Theme.of(context);
     final profile = ref.watch(profileProvider);
 
+    final isFormComplete =
+        _fullNameController.text.isNotEmpty &&
+        _nickNameController.text.isNotEmpty &&
+        _selectedGender.isNotEmpty &&
+        _dobController.text.isNotEmpty &&
+        _emailController.text.isNotEmpty &&
+        _phoneController.text.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: theme.colorScheme.background,
+        backgroundColor: theme.colorScheme.surface,
         elevation: 0,
         title: Text("My Profile", style: theme.textTheme.titleLarge),
         iconTheme: IconThemeData(color: theme.colorScheme.primary),
         actions: [
           TextButton(
             onPressed:
-                (profile.fullName?.isEmpty ?? true) ||
-                        (profile.nickName?.isEmpty ?? true) ||
-                        (profile.gender?.isEmpty ?? true) ||
-                        (profile.dob?.isEmpty ?? true) ||
-                        (profile.email?.isEmpty ?? true) ||
-                        (profile.phone?.isEmpty ?? true)
-                    ? null
-                    : () async {
+                isFormComplete
+                    ? () async {
                       await ref
                           .read(profileProvider.notifier)
                           .updateProfileData(
@@ -130,14 +132,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       if (context.mounted) {
                         Navigator.pushReplacement(
                           context,
-                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                          MaterialPageRoute(builder: (_) => const BaseScreen()),
                         );
                       }
-                    },
+                    }
+                    : null,
             child: Text(
               "Save",
               style: theme.textTheme.labelLarge?.copyWith(
-                color: AppTheme.primaryColor,
+                color: isFormComplete ? AppTheme.primaryColor : Colors.grey,
               ),
             ),
           ),

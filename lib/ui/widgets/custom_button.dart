@@ -18,7 +18,7 @@ class CustomButton extends StatelessWidget {
   final bool isOutlined;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
@@ -34,7 +34,7 @@ class CustomButton extends StatelessWidget {
     this.margin,
     this.alignment = MainAxisAlignment.center,
     this.isOutlined = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
