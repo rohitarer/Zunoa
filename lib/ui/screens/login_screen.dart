@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zunoa/core/theme.dart';
-import 'package:zunoa/ui/screens/home_screen.dart';
+import 'package:zunoa/ui/screens/profile_screen.dart';
 import 'package:zunoa/ui/screens/signup_screen.dart';
 import 'package:zunoa/ui/widgets/custom_textformfield.dart';
 import 'package:zunoa/ui/widgets/custom_button.dart';
@@ -35,7 +35,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
         );
       }
     }

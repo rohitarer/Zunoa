@@ -11,14 +11,26 @@ class AuthState {
   final bool isLoading;
   final String? errorMessage;
   final User? user;
+  final bool isInitialized;
 
-  AuthState({this.isLoading = false, this.errorMessage, this.user});
+  AuthState({
+    this.isLoading = false,
+    this.errorMessage,
+    this.user,
+    this.isInitialized = false,
+  });
 
-  AuthState copyWith({bool? isLoading, String? errorMessage, User? user}) {
+  AuthState copyWith({
+    bool? isLoading,
+    String? errorMessage,
+    User? user,
+    bool? isInitialized,
+  }) {
     return AuthState(
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
       user: user ?? this.user,
+      isInitialized: isInitialized ?? this.isInitialized,
     );
   }
 }
@@ -28,7 +40,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   AuthNotifier() : super(AuthState()) {
     _auth.authStateChanges().listen((user) {
-      state = state.copyWith(user: user);
+      state = state.copyWith(user: user, isInitialized: true);
     });
   }
 
