@@ -7,17 +7,21 @@
     body {
       font-family: Arial, sans-serif;
       margin: 2rem;
-      line-height: 1.6;
-      background-color: #f9f9f9;
-      color: #333;
+      line-height: 1.7;
+      background-color: #fefefe;
+      color: #222;
     }
     h1, h2 {
       color: #2c3e50;
     }
+    ul {
+      margin-top: 0;
+    }
     code {
       background-color: #eee;
-      padding: 0.2em 0.4em;
+      padding: 2px 4px;
       border-radius: 4px;
+      font-family: Consolas, monospace;
     }
     pre {
       background-color: #272822;
@@ -25,6 +29,8 @@
       padding: 1em;
       border-radius: 8px;
       overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -51,8 +57,9 @@
   </ul>
 
   <h2>✅ Health Connect: The New Standard</h2>
-  <p>Health Connect, developed by Android, is now the go-to solution for accessing fitness and wellness data. It serves as a secure and centralized platform where health apps can read and write data—with full user control over what’s shared.</p>
-
+  <p>
+    Health Connect, developed by Android, is now the go-to solution for accessing fitness and wellness data. It serves as a secure and centralized platform where health apps can read and write data—with full user control over what’s shared.
+  </p>
   <p><strong>Key features:</strong></p>
   <ul>
     <li>Central access to steps, heart rate, calories, sleep, and more</li>
@@ -60,28 +67,27 @@
     <li>Seamless inter-app data sharing while protecting privacy</li>
     <li>Available on Android 10 and above via the Play Store</li>
   </ul>
-
   <p>
     For mental health apps like ours, this is a game-changer—it lets us connect wellness metrics (like sleep or activity) directly with mood and emotion tracking, all through a standardized system.
   </p>
 
   <h2>🧩 Flutter Integration with <code>flutter_health_connect</code></h2>
-  <p>To bridge Health Connect with Flutter, I found the <code>flutter_health_connect</code> package. It acts as a wrapper for the native Health Connect API and works well for reading health metrics inside Flutter apps.</p>
+  <p>
+    To bridge Health Connect with Flutter, I found the <code>flutter_health_connect</code> package. It acts as a wrapper for the native Health Connect API and works well for reading health metrics inside Flutter apps.
+  </p>
 
   <h2>🛠️ How to Integrate Health Connect in Flutter</h2>
 
   <h3>✅ Step 1: Add the Plugin</h3>
   <p><strong>In <code>pubspec.yaml</code>:</strong></p>
   <pre><code>dependencies:
-  flutter_health_connect: ^0.1.3
-</code></pre>
+  flutter_health_connect: ^0.1.3</code></pre>
 
   <p><strong>In <code>android/app/build.gradle</code>:</strong></p>
-  <pre><code>minSdkVersion 26
-</code></pre>
+  <pre><code>minSdkVersion 26</code></pre>
 
   <h3>✅ Step 2: Request Necessary Permissions</h3>
-  <pre><code class="language-dart">final healthConnect = FlutterHealthConnect();
+  <pre><code>final healthConnect = FlutterHealthConnect();
 final permissions = [
   HealthPermissionType.steps,
   HealthPermissionType.heartRate,
@@ -93,11 +99,10 @@ final isAvailable = await healthConnect.isAvailable();
 if (isAvailable) {
   final granted = await healthConnect.requestPermissions(permissions);
   print("Permissions granted: $granted");
-}
-</code></pre>
+}</code></pre>
 
   <h3>✅ Step 3: Read Health Data (e.g., Steps)</h3>
-  <pre><code class="language-dart">final steps = await healthConnect.readRecords(
+  <pre><code>final steps = await healthConnect.readRecords(
   HealthRecordType.steps,
   startTime: DateTime.now().subtract(Duration(days: 1)),
   endTime: DateTime.now(),
@@ -105,11 +110,9 @@ if (isAvailable) {
 
 for (final record in steps) {
   print("Steps: ${record.count}, Time: ${record.startTime}");
-}
-</code></pre>
+}</code></pre>
 
   <h2>📱 Real-World Use in Our AI Mental Health App</h2>
-  <p>Here’s how I’m planning to use Health Connect data in our app:</p>
   <ul>
     <li><strong>Step count</strong> → to analyze physical activity vs mood fluctuations</li>
     <li><strong>Heart rate</strong> → to detect elevated stress or anxiety levels</li>
