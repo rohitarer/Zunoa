@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "515426811939",
+    "project_id": "zunoa-d8ef6",
+    "storage_bucket": "zunoa-d8ef6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:515426811939:android:ce1dcd1addd3a5ec453196",
+        "android_client_info": {
+          "package_name": "com.example.zunoa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9PJoZ0gtIlX94XgPrNYFBDKGthQmi4M8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
