@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Find a Peer</title>
+</head>
+<body>
+    <h1>Find Someone to Talk To</h1>
+    <form method="post">
+        <select name="role_seeking" required>
+            <option value="Bestfriend">Looking for a Friend</option>
+            <option value="Brother">Looking for a Brother</option>
+            <option value="Sister">Looking for a Sister</option>
+            <option value="Listener">Looking for a Listener</option>
+        </select>
+        <button type="submit">Find Peer</button>
+    </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Select Your Role</title>
+</head>
+<body>
+    <h1>Select Your Role</h1>
+    <form method="post">
+        {% for role, emoji in role_emoji_pairs %}
+            <button type="submit" name="role" value="{{ role }}">{{ emoji }} {{ role }}</button>
+        {% endfor %}
+    </form>
+</body>
+</html>

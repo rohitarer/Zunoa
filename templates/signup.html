@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GenZ ChatBot Sign Up</title>
+</head>
+<body>
+    <h1>🔐 GenZ ChatBot Sign Up</h1>
+    <form method="post">
+        <input type="text" name="new_username" placeholder="New Username" required>
+        <input type="password" name="new_password" placeholder="New Password" required>
+        <button type="submit">Sign Up</button>
+    </form>
+    <a href="{{ url_for('login') }}">Back to Login</a>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+</body>
+</html>
