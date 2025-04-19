@@ -16,7 +16,13 @@ load_dotenv()
 vertexai.init(project=os.getenv("VERTEX_PROJECT_ID", "genz-457123"),
               location=os.getenv("VERTEX_LOCATION", "us-central1"))
 model = GenerativeModel("gemini-2.0-flash-lite")
-emotion_model = pipeline('text-classification', model='SamLowe/roberta-base-go_emotions')
+# emotion_model = pipeline('text-classification', model='SamLowe/roberta-base-go_emotions')
+emotion_model = pipeline(
+    'text-classification',
+    model='SamLowe/roberta-base-go_emotions',
+    framework='pt'  # Explicitly force PyTorch
+)
+
 
 greetings = {
     "Bestfriend": "Hey bestie! 🤗 Ready for another chat? Tell me what's up!",
