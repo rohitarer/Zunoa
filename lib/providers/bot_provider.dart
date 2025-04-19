@@ -16,31 +16,45 @@ class BotNotifier extends StateNotifier<BotState> {
   final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
+  void updateMessages(ChatMessage message, bool isUserMessage) {
+    final updatedMessages = [...state.messages, message];
+    state = state.copyWith(
+      messages: updatedMessages,
+      isLoading: isUserMessage, // Show loading if user is sending the message
+    );
+  }
+
+  // Load chat history from Firestore
   Future<void> _loadChatHistory() async {
     final uid = _auth.currentUser?.uid;
     if (uid == null) return;
 
-    final snapshot =
-        await _firestore
-            .collection('users')
-            .doc(uid)
-            .collection('bot_chats')
-            .orderBy('timestamp')
-            .get();
+    try {
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .doc(uid)
+              .collection('bot_chats')
+              .orderBy('timestamp')
+              .get();
 
-    final messages =
-        snapshot.docs.map((doc) {
-          final data = doc.data();
-          return ChatMessage(
-            sender: data['sender'] ?? '',
-            text: data['text'] ?? '',
-            timestamp: (data['timestamp'] as Timestamp).toDate(),
-          );
-        }).toList();
+      final messages =
+          snapshot.docs.map((doc) {
+            final data = doc.data();
+            return ChatMessage(
+              sender: data['sender'] ?? '',
+              text: data['text'] ?? '',
+              timestamp: (data['timestamp'] as Timestamp).toDate(),
+            );
+          }).toList();
 
-    state = state.copyWith(messages: messages);
+      state = state.copyWith(messages: messages);
+    } catch (e) {
+      print('Error loading chat history: $e');
+    }
   }
 
+  // Send message logic
   Future<void> sendMessage(String message) async {
     if (message.trim().isEmpty) return;
 
@@ -58,9 +72,11 @@ class BotNotifier extends StateNotifier<BotState> {
       isLoading: true,
     );
 
+    // Save user message to Firestore
     await _saveMessage(uid, userMsg);
 
     try {
+      // Send message to backend and get response
       final response = await http.post(
         Uri.parse("http://localhost:5000/api/chat"),
         headers: {"Content-Type": "application/json"},
@@ -72,6 +88,7 @@ class BotNotifier extends StateNotifier<BotState> {
               ? json.decode(response.body)["bot_response"]
               : "⚠️ Error: Unable to get response.";
 
+      // Create bot message
       final botMsg = ChatMessage(
         sender: 'bot',
         text: botReply,
@@ -83,8 +100,10 @@ class BotNotifier extends StateNotifier<BotState> {
         isLoading: false,
       );
 
+      // Save bot message to Firestore
       await _saveMessage(uid, botMsg);
     } catch (e) {
+      // Handle error
       final errorMsg = ChatMessage(
         sender: 'bot',
         text: "⚠️ Error: $e",
@@ -100,20 +119,30 @@ class BotNotifier extends StateNotifier<BotState> {
     }
   }
 
+  // Save messages to Firestore
   Future<void> _saveMessage(String uid, ChatMessage msg) async {
-    await _firestore.collection('users').doc(uid).collection('bot_chats').add({
-      'sender': msg.sender,
-      'text': msg.text,
-      'timestamp': msg.timestamp,
-    });
+    try {
+      await _firestore.collection('users').doc(uid).collection('bot_chats').add(
+        {'sender': msg.sender, 'text': msg.text, 'timestamp': msg.timestamp},
+      );
+    } catch (e) {
+      print('Error saving message: $e');
+    }
   }
 
+  // Set role for the bot
   void setRole(String role) {
     state = state.copyWith(selectedRole: role);
   }
 
+  // Reset the chat to initial state
   void resetChat() {
     state = BotState.initial();
+  }
+
+  // Get user UID (used for Firestore operations)
+  String? getUid() {
+    return _auth.currentUser?.uid;
   }
 }
 

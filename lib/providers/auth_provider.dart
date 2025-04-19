@@ -79,13 +79,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     });
   }
 
-  Future<void> signUp(String email, String password, String fullName) async {
+  Future<void> signUp(
+    String email,
+    String password,
+    String fullName,
+    String nickName,
+  ) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       UserCredential result = await firebaseService.signUpWithEmail(
         email: email,
         password: password,
         fullName: fullName,
+        nickName: nickName, // Add the nickName parameter here
       );
       state = state.copyWith(user: result.user);
     } on FirebaseAuthException catch (e) {
@@ -127,3 +133,93 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   User? get currentUser => _auth.currentUser;
 }
+
+// class AuthNotifier extends StateNotifier<AuthState> {
+//   final FirebaseAuth _auth = FirebaseAuth.instance;
+
+//   AuthNotifier() : super(AuthState()) {
+//     initializeAuthState();
+//   }
+
+//   Future<void> initializeAuthState() async {
+//     final user = _auth.currentUser;
+//     bool profileComplete = false;
+
+//     if (user != null) {
+//       try {
+//         final userData = await firebaseService.fetchUserData(user.uid);
+//         profileComplete = userData['isProfileComplete'] == true;
+//       } catch (_) {
+//         profileComplete = false;
+//       }
+//     }
+
+//     state = state.copyWith(
+//       user: user,
+//       isInitialized: true,
+//       isProfileComplete: profileComplete,
+//     );
+
+//     _auth.authStateChanges().listen((user) async {
+//       bool profileComplete = false;
+//       if (user != null) {
+//         try {
+//           final userData = await firebaseService.fetchUserData(user.uid);
+//           profileComplete = userData['isProfileComplete'] == true;
+//         } catch (_) {
+//           profileComplete = false;
+//         }
+//       }
+//       state = state.copyWith(user: user, isProfileComplete: profileComplete);
+//     });
+//   }
+
+//   Future<void> signUp(String email, String password, String fullName) async {
+//     state = state.copyWith(isLoading: true, errorMessage: null);
+//     try {
+//       UserCredential result = await firebaseService.signUpWithEmail(
+//         email: email,
+//         password: password,
+//         fullName: fullName,
+//         nickName: nickName,
+//       );
+//       state = state.copyWith(user: result.user);
+//     } on FirebaseAuthException catch (e) {
+//       state = state.copyWith(errorMessage: e.message);
+//     } finally {
+//       state = state.copyWith(isLoading: false);
+//     }
+//   }
+
+//   Future<void> login(String email, String password) async {
+//     state = state.copyWith(isLoading: true, errorMessage: null);
+//     try {
+//       UserCredential result = await firebaseService.loginWithEmail(
+//         email: email,
+//         password: password,
+//       );
+//       bool profileComplete = false;
+//       try {
+//         final userData = await firebaseService.fetchUserData(result.user!.uid);
+//         profileComplete = userData['isProfileComplete'] == true;
+//       } catch (_) {
+//         profileComplete = false;
+//       }
+//       state = state.copyWith(
+//         user: result.user,
+//         isProfileComplete: profileComplete,
+//       );
+//     } on FirebaseAuthException catch (e) {
+//       state = state.copyWith(errorMessage: e.message);
+//     } finally {
+//       state = state.copyWith(isLoading: false);
+//     }
+//   }
+
+//   Future<void> logout() async {
+//     await _auth.signOut();
+//     state = state.copyWith(user: null, isProfileComplete: false);
+//   }
+
+//   User? get currentUser => _auth.currentUser;
+// }

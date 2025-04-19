@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zunoa/core/theme.dart';
 import 'package:zunoa/providers/auth_provider.dart';
+import 'package:zunoa/ui/screens/anonymous_chat_screen.dart';
 import 'package:zunoa/ui/screens/bot_screen.dart';
 import 'package:zunoa/ui/screens/explore_screen.dart';
 import 'package:zunoa/ui/widgets/custom_bottom_nav_bar.dart';
@@ -19,7 +20,7 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   final List<Widget> _pages = [
     const ExploreScreen(),
     BotScreen(),
-    const AnonChatScreen(),
+    const AnonymousChatScreen(),
     const ConnectScreen(),
     const DashboardScreen(),
   ];
@@ -68,14 +69,14 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
 //   }
 // }
 
-class AnonChatScreen extends StatelessWidget {
-  const AnonChatScreen({super.key});
+// class AnonChatScreen extends StatelessWidget {
+//   const AnonChatScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("Anonymous Chat"));
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Center(child: Text("Anonymous Chat"));
+//   }
+// }
 
 class ConnectScreen extends StatelessWidget {
   const ConnectScreen({super.key});
