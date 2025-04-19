@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zunoa/core/theme.dart';
 import 'package:zunoa/providers/auth_provider.dart';
+import 'package:zunoa/ui/screens/bot_screen.dart';
 import 'package:zunoa/ui/screens/explore_screen.dart';
 import 'package:zunoa/ui/widgets/custom_bottom_nav_bar.dart';
 
@@ -17,7 +18,7 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
 
   final List<Widget> _pages = [
     const ExploreScreen(),
-    const ChatBotScreen(),
+    BotScreen(),
     const AnonChatScreen(),
     const ConnectScreen(),
     const DashboardScreen(),
@@ -27,7 +28,7 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
     BottomNavigationBarItem(icon: Icon(Icons.explore), label: 'Explore'),
     BottomNavigationBarItem(
       icon: Icon(Icons.chat_bubble_outline),
-      label: 'Chat',
+      label: 'Bot',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.privacy_tip_outlined),
@@ -58,14 +59,14 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
   }
 }
 
-class ChatBotScreen extends StatelessWidget {
-  const ChatBotScreen({super.key});
+// class ChatBotScreen extends StatelessWidget {
+//   const ChatBotScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text("AI ChatBot"));
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Center(child: Text("AI ChatBot"));
+//   }
+// }
 
 class AnonChatScreen extends StatelessWidget {
   const AnonChatScreen({super.key});
