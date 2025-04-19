@@ -1,260 +1,300 @@
-import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:zunoa/providers/bot_provider.dart'; // Ensure bot provider logic
+import 'package:zunoa/services/gemini_service.dart';
 
-class BotScreen extends ConsumerStatefulWidget {
-  const BotScreen({super.key});
+class BotScreen extends StatefulWidget {
+  String role;
+
+  BotScreen({super.key, required this.role});
 
   @override
-  ConsumerState<BotScreen> createState() => _BotScreenState();
+  _BotScreenState createState() => _BotScreenState();
 }
 
-class _BotScreenState extends ConsumerState<BotScreen>
-    with SingleTickerProviderStateMixin {
-  final TextEditingController _inputController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+class _BotScreenState extends State<BotScreen> with TickerProviderStateMixin {
+  final TextEditingController _controller = TextEditingController();
+  final List<Map<String, String>> _messages = [];
+  bool _isLoading = false;
+
+  late AnimationController _animationController;
+  late Animation<double> _dotAnimation;
 
   @override
   void initState() {
     super.initState();
-    final messages = ref.read(botProvider).messages;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      for (int i = 0; i < messages.length; i++) {
-        _listKey.currentState?.insertItem(i);
+
+    // Animation for dots (typing indicator)
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    );
+
+    _dotAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    )..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _animationController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        _animationController.forward();
       }
     });
+
+    _animationController.forward();
   }
 
-  void _send() async {
-    final msg = _inputController.text.trim();
-    if (msg.isNotEmpty) {
-      final uid = ref.read(botProvider.notifier).getUid(); // Ensure valid UID
-      if (uid == null) return;
-
-      // Add user message to the state
-      final userMsg = ChatMessage(
-        sender: 'user',
-        text: msg,
-        timestamp: DateTime.now(),
-      );
-
-      ref.read(botProvider.notifier).updateMessages(userMsg, true);
-
-      // Ensure list key is inserted properly and add message
-      _listKey.currentState?.insertItem(
-        ref.read(botProvider).messages.length - 1,
-      );
-
-      _inputController.clear();
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent + 100,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-
-      // Save message to Firestore
-      await _saveMessage(uid, userMsg);
-
-      try {
-        // Send message to the backend and get the bot's response
-        final response = await http.post(
-          Uri.parse("http://localhost:5000/api/chat"),
-          headers: {"Content-Type": "application/json"},
-          body: json.encode({
-            "message": msg,
-            "role": ref.read(botProvider).selectedRole,
-          }),
-        );
-
-        final botReply =
-            response.statusCode == 200
-                ? json.decode(response.body)["bot_response"]
-                : "⚠️ Error: Unable to get response.";
-
-        // Create and add bot message
-        final botMsg = ChatMessage(
-          sender: 'bot',
-          text: botReply,
-          timestamp: DateTime.now(),
-        );
-
-        ref.read(botProvider.notifier).updateMessages(botMsg, false);
-
-        // Insert bot message and scroll to the bottom
-        _listKey.currentState?.insertItem(
-          ref.read(botProvider).messages.length - 1,
-        );
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 100,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-
-        await _saveMessage(uid, botMsg); // Save bot message to Firestore
-      } catch (e) {
-        // Handle error
-        final errorMsg = ChatMessage(
-          sender: 'bot',
-          text: "⚠️ Error: $e",
-          timestamp: DateTime.now(),
-        );
-
-        ref.read(botProvider.notifier).updateMessages(errorMsg, false);
-
-        _listKey.currentState?.insertItem(
-          ref.read(botProvider).messages.length - 1,
-        );
-        await _saveMessage(uid, errorMsg);
-      }
-    }
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
-  // Function to save message to Firestore
-  Future<void> _saveMessage(String uid, ChatMessage msg) async {
+  Future<void> _sendMessage() async {
+    final message = _controller.text.trim();
+    if (message.isEmpty) return;
+
+    setState(() {
+      _messages.insert(0, {'sender': 'You', 'message': message});
+      _isLoading = true;
+    });
+
+    _controller.clear();
+
+    print("Sending message: $message with role: ${widget.role}");
+
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .collection('bot_chats')
-          .add({
-            'sender': msg.sender,
-            'text': msg.text,
-            'timestamp': msg.timestamp,
+      final response = await geminiService.generateChatResponse(
+        widget.role,
+        message,
+      );
+
+      print("Received response: $response");
+
+      setState(() {
+        if (response.isNotEmpty) {
+          _messages.insert(0, {'sender': widget.role, 'message': response});
+        } else {
+          _messages.insert(0, {
+            'sender': widget.role,
+            'message': "No response, try again!",
           });
+        }
+        _isLoading = false;
+      });
     } catch (e) {
-      print("Error saving message to Firestore: $e");
+      print("Error in receiving Gemini response: $e");
+      setState(() {
+        _messages.insert(0, {'sender': widget.role, 'message': "Error: $e"});
+        _isLoading = false;
+      });
     }
+  }
+
+  void _selectRole() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select a Role'),
+          content: SingleChildScrollView(
+            child: Column(
+              children:
+                  [
+                    'Boyfriend',
+                    'Girlfriend',
+                    'Male Bestie',
+                    'Female Bestie',
+                    'Brother',
+                    'Sister',
+                    'Teacher',
+                    'Aunt',
+                    'Mom',
+                    'Dad',
+                    'Uncle',
+                    'Male Stranger',
+                    'Female Stranger',
+                  ].map((role) {
+                    return ListTile(
+                      title: Text(role),
+                      onTap: () {
+                        setState(() {
+                          widget.role = role; // Update the role dynamically
+                        });
+                        Navigator.pop(context);
+                        print("Role selected: $role");
+                      },
+                    );
+                  }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Widget for Typing Indicator with "typing" text, vertically centered
+  Widget _buildTypingIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment:
+          CrossAxisAlignment.center, // Vertically center the dots and the text
+      children: [
+        // "Typing" text
+        Text(
+          'Typing',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(width: 10),
+        // Dots animation
+        Row(
+          children: List.generate(3, (index) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 3.0),
+              child: FadeTransition(
+                opacity: _dotAnimation,
+                child: Text(
+                  '.',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final botState = ref.watch(botProvider);
-    final controller = ref.read(botProvider.notifier);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Chatbot"),
+        title: Text('Chat with ${widget.role}'),
         actions: [
-          DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: botState.selectedRole,
-              dropdownColor: Colors.white,
-              icon: const Icon(Icons.person_outline, color: Colors.white),
-              items:
-                  ["Bestfriend", "Brother", "Sister", "Listener"]
-                      .map(
-                        (role) =>
-                            DropdownMenuItem(value: role, child: Text(role)),
-                      )
-                      .toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  controller.setRole(value);
-                }
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: _selectRole, // Show the role selection dialog
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: AnimatedList(
-              key: _listKey,
-              controller: _scrollController,
-              initialItemCount: botState.messages.length,
-              itemBuilder: (context, index, animation) {
-                final msg = botState.messages[index];
-                final isUser = msg.sender == "user";
-                final timestamp = DateFormat('hh:mm a').format(msg.timestamp);
-
-                return SizeTransition(
-                  sizeFactor: animation,
-                  child: Container(
-                    alignment:
-                        isUser ? Alignment.centerRight : Alignment.centerLeft,
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Expanded(
+              child: ListView.builder(
+                reverse: true, // This ensures the list starts from the bottom
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  return Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
+                      vertical: 5,
+                      horizontal: 15,
                     ),
                     child: Row(
                       mainAxisAlignment:
-                          isUser
+                          message['sender'] == 'You'
                               ? MainAxisAlignment.end
                               : MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (!isUser)
-                          const CircleAvatar(radius: 16, child: Text("🤖")),
-                        if (!isUser) const SizedBox(width: 8),
+                        if (message['sender'] != 'You') ...[
+                          CircleAvatar(
+                            backgroundColor: Colors.blueGrey,
+                            child: Text(
+                              widget.role.substring(0, 1).toUpperCase(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                        ],
                         Flexible(
                           child: Container(
-                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color:
-                                  isUser ? Colors.blue[100] : Colors.grey[300],
-                              borderRadius: BorderRadius.circular(12),
+                                  message['sender'] == 'You'
+                                      ? Colors.blueAccent
+                                      : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 18,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(msg.text),
-                                const SizedBox(height: 4),
                                 Text(
-                                  timestamp,
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
+                                  message['sender']!,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color:
+                                        message['sender'] == 'You'
+                                            ? Colors.white
+                                            : Colors.black87,
                                   ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  message['message']!,
+                                  style: TextStyle(
+                                    color:
+                                        message['sender'] == 'You'
+                                            ? Colors.white
+                                            : Colors.black,
+                                  ),
+                                  softWrap: true, // Ensure text wraps
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        if (isUser) const SizedBox(width: 8),
-                        if (isUser)
-                          const CircleAvatar(radius: 16, child: Text("👨‍🦱")),
                       ],
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-          if (botState.isLoading) const LinearProgressIndicator(),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _inputController,
-                    decoration: const InputDecoration(
-                      hintText: "Type your message...",
-                      border: OutlineInputBorder(),
+            if (_isLoading)
+              _buildTypingIndicator(), // Show the typing indicator
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      decoration: InputDecoration(
+                        hintText: 'Type your message...',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade200,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                      ),
                     ),
-                    onSubmitted: (_) => _send(),
                   ),
-                ),
-                const SizedBox(width: 8),
-                IconButton(icon: const Icon(Icons.send), onPressed: _send),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _sendMessage,
+                    color: Colors.teal,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _inputController.dispose();
-    _scrollController.dispose();
-    super.dispose();
   }
 }

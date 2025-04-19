@@ -12,7 +12,7 @@ final exploreProvider = FutureProvider.autoDispose<List<Widget>>((ref) async {
 
   for (final mood in moods) {
     try {
-      final vibeLine = await geminiService.generateVibeLine(mood);
+      // final vibeLine = await geminiService.generateVibeLine(mood);
 
       // VibeCard
       cards.add(VibeCard(mood: mood, emoji: _emojiMap[mood] ?? "✨"));
@@ -25,7 +25,7 @@ final exploreProvider = FutureProvider.autoDispose<List<Widget>>((ref) async {
         VibeMemeCard(
           mood: mood,
           imageUrl: "https://picsum.photos/seed/${mood.hashCode}/400/200",
-          preloadedCaption: vibeLine,
+          // preloadedCaption: vibeLine,
         ),
       );
     } catch (e) {

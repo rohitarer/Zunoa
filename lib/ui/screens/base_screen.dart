@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:zunoa/core/theme.dart';
 import 'package:zunoa/providers/auth_provider.dart';
 import 'package:zunoa/ui/screens/anonymous_chat_screen.dart';
-import 'package:zunoa/ui/screens/bot_screen.dart';
+import 'package:zunoa/ui/screens/bot_screen.dart'; // import BotScreen
 import 'package:zunoa/ui/screens/connect_screen.dart';
 import 'package:zunoa/ui/screens/explore_screen.dart';
 import 'package:zunoa/ui/widgets/custom_bottom_nav_bar.dart';
@@ -18,9 +18,53 @@ class BaseScreen extends ConsumerStatefulWidget {
 class _BaseScreenState extends ConsumerState<BaseScreen> {
   int _currentIndex = 0;
 
+  // Define a variable to store the selected role
+  String selectedRole = 'Boyfriend'; // Default role
+
+  // Function to show a dialog for role selection
+  void _selectRole() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Select a Role'),
+          content: SingleChildScrollView(
+            child: Column(
+              children:
+                  [
+                    'Boyfriend',
+                    'Girlfriend',
+                    'Male Bestie',
+                    'Female Bestie',
+                    'Brother',
+                    'Sister',
+                    'Teacher',
+                    'Aunt',
+                    'Mom',
+                    'Dad',
+                    'Uncle',
+                    'Male Stranger',
+                    'Female Stranger',
+                  ].map((role) {
+                    return ListTile(
+                      title: Text(role),
+                      onTap: () {
+                        setState(() {
+                          selectedRole = role;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  }).toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   final List<Widget> _pages = [
     const ExploreScreen(),
-    BotScreen(),
     const AnonymousChatScreen(),
     const ConnectScreen(),
     const DashboardScreen(),
@@ -46,11 +90,28 @@ class _BaseScreenState extends ConsumerState<BaseScreen> {
     final user = ref.watch(authProvider).user;
 
     return Scaffold(
-      body: _pages[_currentIndex],
+      // appBar: AppBar(
+      //   title: Text('Selected Role: $selectedRole'),
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.person),
+      //       onPressed: _selectRole, // Show the role selection dialog
+      //     ),
+      //   ],
+      // ),
+      body: _pages[_currentIndex], // Display the selected screen
       bottomNavigationBar: CustomBottomNavBar(
         currentIndex: _currentIndex,
         items: _navItems,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+            // Update the BotScreen with the selected role dynamically
+            if (_currentIndex == 1) {
+              _pages[1] = BotScreen(role: selectedRole); // Update BotScreen
+            }
+          });
+        },
         backgroundColor: theme.colorScheme.surface,
         selectedItemColor: AppTheme.primaryColor,
         unselectedItemColor: Colors.grey,

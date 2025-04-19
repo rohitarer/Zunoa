@@ -42,10 +42,10 @@ class _VibeCardState extends State<VibeCard> {
   Future<void> _loadContent() async {
     setState(() => _loading = true);
     try {
-      final line = await geminiService.generateVibeLine(widget.mood);
+      // final line = await geminiService.generateVibeLine(widget.mood);
       if (mounted) {
         setState(() {
-          _content = line;
+          // _content = line;
           _loading = false;
         });
       }

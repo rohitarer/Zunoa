@@ -26,8 +26,8 @@ class _MoodAffirmationCardState extends State<MoodAffirmationCard> {
 
   // Fetch the affirmation text based on the mood
   Future<void> _fetchAndTypeText() async {
-    final response = await geminiService.generateVibeLine(widget.moodTag);
-    _fullText = response;
+    // final response = await geminiService.generateVibeLine(widget.moodTag);
+    // _fullText = response;
     _isLoading = false;
     _startTyping();
   }

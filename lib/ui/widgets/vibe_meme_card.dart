@@ -53,11 +53,11 @@ class _VibeMemeCardState extends State<VibeMemeCard> {
   Future<void> _loadCaption() async {
     setState(() => isLoading = true);
     try {
-      final vibe = await geminiService.generateVibeLine(widget.mood);
+      // final vibe = await geminiService.generateVibeLine(widget.mood);
       if (mounted) {
-        final sanitized = _sanitizeText(vibe);
+        // final sanitized = _sanitizeText(vibe);
         setState(() {
-          caption = sanitized;
+          // caption = sanitized;
           isLoading = false;
         });
       }

@@ -205,7 +205,7 @@ class ExpertDetailScreen extends StatelessWidget {
     final availability = expert['availability'] as Map<String, dynamic>;
 
     // Handle the booking action
-    void _bookAppointment() async {
+    void bookAppointment() async {
       // Attempt to sign in and book the appointment via Google Calendar
       try {
         // Sign in using the GoogleSignIn method and then create the appointment
@@ -260,7 +260,7 @@ class ExpertDetailScreen extends StatelessWidget {
             const SizedBox(height: 20),
             CustomButton(
               text: "Book Appointment",
-              onPressed: _bookAppointment, // Call the function on button press
+              onPressed: bookAppointment, // Call the function on button press
               backgroundColor: AppTheme.primaryColor,
               textColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),

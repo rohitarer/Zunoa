@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:googleapis/calendar/v3.dart' as calendar;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
